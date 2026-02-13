@@ -44,16 +44,6 @@ class User(Base):
         secondaryjoin=id == friendships.c.user2_id,
         backref="friend_of",
     )
-    received_messages = relationship(
-        "Message", foreign_keys="Message.receiver_id", back_populates="receiver"
-    )
-    friends = relationship(
-        "User",
-        secondary=friendships,
-        primaryjoin=id == friendships.c.user1_id,
-        secondaryjoin=id == friendships.c.user2_id,
-        backref="friend_of",
-    )
 
     def __repr__(self):
         return f"<User(username='{self.username}')>"
