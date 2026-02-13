@@ -8,6 +8,7 @@ from app.api import auth
 from app.api import friends
 from app.api import messages
 from app.api import notifications
+from app.api import users
 
 router = APIRouter()
 
@@ -16,6 +17,7 @@ router.include_router(auth.router)
 router.include_router(friends.router)
 router.include_router(messages.router)
 router.include_router(notifications.router)
+router.include_router(users.router)
 
 
 @router.get("/")

@@ -13,8 +13,8 @@ Base = declarative_base()
 friendships = Table(
     "friendships",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
-    Column("friend_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("user1_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("user2_id", Integer, ForeignKey("users.id"), primary_key=True),
 )
 
 
@@ -31,13 +31,17 @@ class User(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    sent_messages = relationship("Message", foreign_keys="Message.sender_id", back_populates="sender")
-    received_messages = relationship("Message", foreign_keys="Message.receiver_id", back_populates="receiver")
+    sent_messages = relationship(
+        "Message", foreign_keys="Message.sender_id", back_populates="sender"
+    )
+    received_messages = relationship(
+        "Message", foreign_keys="Message.receiver_id", back_populates="receiver"
+    )
     friends = relationship(
         "User",
         secondary=friendships,
-        primaryjoin=id == friendships.c.user_id,
-        secondaryjoin=id == friendships.c.friend_id,
+        primaryjoin=id == friendships.c.user1_id,
+        secondaryjoin=id == friendships.c.user2_id,
         backref="friend_of",
     )
 
@@ -60,8 +64,12 @@ class Message(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_messages")
-    receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_messages")
+    sender = relationship(
+        "User", foreign_keys=[sender_id], back_populates="sent_messages"
+    )
+    receiver = relationship(
+        "User", foreign_keys=[receiver_id], back_populates="received_messages"
+    )
 
     def __repr__(self):
         return f"<Message(id={self.id}, sender_id={self.sender_id}, receiver_id={self.receiver_id})>"
@@ -74,7 +82,9 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    notification_type = Column(String, nullable=False)  # 'new_message', 'message_read', 'friend_request'
+    notification_type = Column(
+        String, nullable=False
+    )  # 'new_message', 'message_read', 'friend_request'
     title = Column(String, nullable=False)
     message = Column(String, nullable=True)
     related_id = Column(Integer, nullable=True)  # ID of related message/user
@@ -85,4 +95,6 @@ class Notification(Base):
     user = relationship("User", backref="notifications")
 
     def __repr__(self):
-        return f"<Notification(type='{self.notification_type}', user_id={self.user_id})>"
+        return (
+            f"<Notification(type='{self.notification_type}', user_id={self.user_id})>"
+        )
