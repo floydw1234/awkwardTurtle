@@ -14,7 +14,7 @@ import pytest
 import subprocess
 import os
 from pathlib import Path
-from sqlalchemy import inspect, create_engine
+from sqlalchemy import inspect, create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # Project paths
@@ -41,7 +41,7 @@ def pg_engine():
     try:
         # Verify connection works
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         yield engine
     finally:
         engine.dispose()
@@ -59,7 +59,7 @@ class TestMigrationsDirectory:
         """Test that migrations directory contains at least one migration file."""
         # Get all py files in versions directory
         versions_dir = MIGRATIONS_DIR / "versions"
-        
+
         # Check if versions directory exists and has migration files
         if versions_dir.exists():
             migration_files = list(versions_dir.glob("*.py"))
@@ -95,52 +95,49 @@ class TestMigrationsDirectory:
 class TestDatabaseTablesAfterMigration:
     """Tests that verify database tables are created by migrations."""
 
-    @pytest.mark.skip(reason="Migrations not yet created - empty migrations directory")
     def test_users_table_created_after_migration(self, pg_engine):
         """Test that users table is created when running alembic upgrade head."""
         inspector = inspect(pg_engine)
         tables = inspector.get_table_names()
-        
+
         assert "users" in tables, "users table should exist after migration"
 
-    @pytest.mark.skip(reason="Migrations not yet created - empty migrations directory")
     def test_messages_table_created_after_migration(self, pg_engine):
         """Test that messages table is created when running alembic upgrade head."""
         inspector = inspect(pg_engine)
         tables = inspector.get_table_names()
-        
+
         assert "messages" in tables, "messages table should exist after migration"
 
-    @pytest.mark.skip(reason="Migrations not yet created - empty migrations directory")
     def test_notifications_table_created_after_migration(self, pg_engine):
         """Test that notifications table is created when running alembic upgrade head."""
         inspector = inspect(pg_engine)
         tables = inspector.get_table_names()
-        
-        assert "notifications" in tables, "notifications table should exist after migration"
 
-    @pytest.mark.skip(reason="Migrations not yet created - empty migrations directory")
+        assert "notifications" in tables, (
+            "notifications table should exist after migration"
+        )
+
     def test_friendships_table_created_after_migration(self, pg_engine):
         """Test that friendships table is created when running alembic upgrade head."""
         inspector = inspect(pg_engine)
         tables = inspector.get_table_names()
-        
+
         assert "friendships" in tables, "friendships table should exist after migration"
 
 
 class TestDatabaseSchemaAfterMigration:
     """Tests that verify database schema matches backend models after migration.
-    
+
     This reuses logic from test_schema.py but runs against the actual PostgreSQL container.
     """
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
     def test_users_table_columns_after_migration(self, pg_engine):
         """Test that users table has all required columns."""
         inspector = inspect(pg_engine)
         columns = inspector.get_columns("users")
         column_names = [col["name"] for col in columns]
-        
+
         expected_columns = [
             "id",
             "username",
@@ -149,17 +146,16 @@ class TestDatabaseSchemaAfterMigration:
             "created_at",
             "updated_at",
         ]
-        
+
         for col in expected_columns:
             assert col in column_names, f"users table should have column '{col}'"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
     def test_messages_table_columns_after_migration(self, pg_engine):
         """Test that messages table has all required columns."""
         inspector = inspect(pg_engine)
         columns = inspector.get_columns("messages")
         column_names = [col["name"] for col in columns]
-        
+
         expected_columns = [
             "id",
             "sender_id",
@@ -170,17 +166,16 @@ class TestDatabaseSchemaAfterMigration:
             "created_at",
             "updated_at",
         ]
-        
+
         for col in expected_columns:
             assert col in column_names, f"messages table should have column '{col}'"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
     def test_notifications_table_columns_after_migration(self, pg_engine):
         """Test that notifications table has all required columns."""
         inspector = inspect(pg_engine)
         columns = inspector.get_columns("notifications")
         column_names = [col["name"] for col in columns]
-        
+
         expected_columns = [
             "id",
             "user_id",
@@ -191,55 +186,65 @@ class TestDatabaseSchemaAfterMigration:
             "is_read",
             "created_at",
         ]
-        
-        for col in expected_columns:
-            assert col in column_names, f"notifications table should have column '{col}'"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
+        for col in expected_columns:
+            assert col in column_names, (
+                f"notifications table should have column '{col}'"
+            )
+
     def test_users_table_primary_key_after_migration(self, pg_engine):
         """Test that users table has correct primary key."""
         inspector = inspect(pg_engine)
         pk = inspector.get_pk_constraint("users")
-        
-        assert pk is not None, "users table should have a primary key"
-        assert pk["constrained_columns"] == ["id"], "users primary key should be on 'id'"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
+        assert pk is not None, "users table should have a primary key"
+        assert pk["constrained_columns"] == ["id"], (
+            "users primary key should be on 'id'"
+        )
+
     def test_messages_table_foreign_keys_after_migration(self, pg_engine):
         """Test that messages table has correct foreign keys."""
         inspector = inspect(pg_engine)
         fks = inspector.get_foreign_keys("messages")
         fk_names = [(fk["constrained_columns"], fk["referred_columns"]) for fk in fks]
-        
+
         sender_fk_found = False
         receiver_fk_found = False
-        
+
         for constrained, referred in fk_names:
             if constrained == ["sender_id"] and referred == ["id"]:
                 sender_fk_found = True
             if constrained == ["receiver_id"] and referred == ["id"]:
                 receiver_fk_found = True
-        
+
         assert sender_fk_found, "messages should have FK from sender_id to users.id"
         assert receiver_fk_found, "messages should have FK from receiver_id to users.id"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
     def test_users_table_nullable_constraints_after_migration(self, pg_engine):
         """Test that users table has correct nullable constraints."""
         inspector = inspect(pg_engine)
         columns = inspector.get_columns("users")
         column_map = {col["name"]: col for col in columns}
-        
-        assert column_map["username"]["nullable"] is False, "username should NOT be nullable"
-        assert column_map["hashed_password"]["nullable"] is False, "hashed_password should NOT be nullable"
 
-    @pytest.mark.skip(reason="Migrations not yet created - no tables exist")
+        assert column_map["username"]["nullable"] is False, (
+            "username should NOT be nullable"
+        )
+        assert column_map["hashed_password"]["nullable"] is False, (
+            "hashed_password should NOT be nullable"
+        )
+
     def test_messages_table_nullable_constraints_after_migration(self, pg_engine):
         """Test that messages table has correct nullable constraints."""
         inspector = inspect(pg_engine)
         columns = inspector.get_columns("messages")
         column_map = {col["name"]: col for col in columns}
-        
-        assert column_map["sender_id"]["nullable"] is False, "sender_id should NOT be nullable"
-        assert column_map["receiver_id"]["nullable"] is False, "receiver_id should NOT be nullable"
-        assert column_map["content"]["nullable"] is False, "content should NOT be nullable"
+
+        assert column_map["sender_id"]["nullable"] is False, (
+            "sender_id should NOT be nullable"
+        )
+        assert column_map["receiver_id"]["nullable"] is False, (
+            "receiver_id should NOT be nullable"
+        )
+        assert column_map["content"]["nullable"] is False, (
+            "content should NOT be nullable"
+        )
