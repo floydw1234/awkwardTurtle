@@ -11,11 +11,11 @@ from app.api import notifications
 
 router = APIRouter()
 
-# Include all API routers
-router.include_router(auth.router, prefix="/api/v1")
-router.include_router(friends.router, prefix="/api/v1")
-router.include_router(messages.router, prefix="/api/v1")
-router.include_router(notifications.router, prefix="/api/v1")
+# Include all API routers (without extra prefix - it's added in main.py)
+router.include_router(auth.router)
+router.include_router(friends.router)
+router.include_router(messages.router)
+router.include_router(notifications.router)
 
 
 @router.get("/")

@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
+# Import Base from models (models define their own declarative base)
+from app.models import Base
+
 # Create async engine for PostgreSQL
 engine = create_async_engine(
     settings.DATABASE_URL,
