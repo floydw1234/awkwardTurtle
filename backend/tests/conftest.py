@@ -127,7 +127,9 @@ def override_get_db(test_db):
 def create_test_user(override_get_db):
     """Factory fixture to create test users."""
 
-    def _create_user(username: str, password: str = "testpassword123"):
+    def _create_user(
+        username: str, password: str = "testpassword123", is_active: bool = True
+    ):
         from app.core.security import get_password_hash
 
         session = SyncTestingSessionLocal()
@@ -135,7 +137,7 @@ def create_test_user(override_get_db):
             user = User(
                 username=username,
                 hashed_password=get_password_hash(password),
-                is_active=True,
+                is_active=is_active,
             )
             session.add(user)
             session.commit()
@@ -159,7 +161,9 @@ def get_auth_token():
     return _get_token
 
 
-def _create_message_sync(sender_id: int, receiver_id: int, content: str, is_read: bool = False):
+def _create_message_sync(
+    sender_id: int, receiver_id: int, content: str, is_read: bool = False
+):
     """Create a message using a synchronous session."""
     session = SyncTestingSessionLocal()
     try:
@@ -167,7 +171,7 @@ def _create_message_sync(sender_id: int, receiver_id: int, content: str, is_read
             sender_id=sender_id,
             receiver_id=receiver_id,
             content=content,
-            is_read=is_read
+            is_read=is_read,
         )
         session.add(message)
         session.commit()
@@ -177,7 +181,14 @@ def _create_message_sync(sender_id: int, receiver_id: int, content: str, is_read
         session.close()
 
 
-def _create_notification_sync(user_id: int, notification_type: str, title: str, message: str = None, related_id: int = None, is_read: bool = False):
+def _create_notification_sync(
+    user_id: int,
+    notification_type: str,
+    title: str,
+    message: str = None,
+    related_id: int = None,
+    is_read: bool = False,
+):
     """Create a notification using a synchronous session."""
     session = SyncTestingSessionLocal()
     try:
@@ -187,7 +198,7 @@ def _create_notification_sync(user_id: int, notification_type: str, title: str, 
             title=title,
             message=message,
             related_id=related_id,
-            is_read=is_read
+            is_read=is_read,
         )
         session.add(notification)
         session.commit()
