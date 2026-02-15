@@ -22,6 +22,9 @@ vi.mock('../../utils/api', () => ({
     inbox: vi.fn(),
     outbox: vi.fn(),
   },
+  notificationsAPI: {
+    get: vi.fn(),
+  },
 }))
 
 function AppForLogoutTest() {
@@ -54,6 +57,7 @@ function AppForLogoutTest() {
 describe('Dashboard Logout Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    apiUtils.notificationsAPI.get.mockResolvedValue({ data: { notifications: [], total: 0 } })
   })
 
   test('logout button is rendered in dashboard', async () => {

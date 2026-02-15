@@ -36,4 +36,20 @@ describe('Dashboard', () => {
       expect(mockLogout).toHaveBeenCalled()
     })
   })
+
+  test('displays notification count badge', async () => {
+    vi.spyOn(apiUtils.notificationsAPI, 'get').mockResolvedValue({
+      data: { notifications: [{ id: 1, is_read: false }], total: 1 }
+    })
+    
+    render(
+      <MemoryRouter>
+        <Dashboard username="testuser" onLogout={() => {}} />
+      </MemoryRouter>
+    )
+    
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+  })
 })
