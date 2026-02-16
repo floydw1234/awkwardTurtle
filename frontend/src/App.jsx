@@ -6,6 +6,7 @@ import RegisterForm from './components/RegisterForm'
 import Dashboard from './components/Dashboard'
 import FriendsPage from './components/FriendsPage'
 import MessagesPage from './components/MessagesPage'
+import NotificationsPage from './components/NotificationsPage'
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null)
@@ -41,6 +42,7 @@ function App() {
             <Route index element={<Navigate to="/friends" replace />} />
             <Route path="friends" element={<FriendsPage username={currentUser} />} />
             <Route path="messages" element={<MessagesPage username={currentUser} />} />
+            <Route path="notifications" element={<NotificationsPage username={currentUser} />} />
           </Route>
           <Route path="/" element={<Navigate to={currentUser ? "/dashboard" : "/login"} replace />} />
         </Routes>

@@ -1,7 +1,10 @@
 import { Link, Outlet } from 'react-router-dom'
-import { authAPI } from '../utils/api'
+import { useEffect, useState } from 'react'
+import { authAPI, notificationsAPI } from '../utils/api'
 
 function Dashboard({ username, onLogout }) {
+  const [unreadCount, setUnreadCount] = useState(0)
+  
   const handleLogout = async () => {
     try {
       await authAPI.logout()
@@ -11,6 +14,21 @@ function Dashboard({ username, onLogout }) {
       onLogout()
     }
   }
+
+  useEffect(() => {
+    const loadNotificationCount = async () => {
+      try {
+        const response = await notificationsAPI.get()
+        const notifications = response.data.notifications || []
+        const unread = notifications.filter(n => !n.is_read).length
+        setUnreadCount(unread)
+      } catch (err) {
+        console.error('Failed to load notification count:', err)
+      }
+    }
+    
+    loadNotificationCount()
+  }, [])
 
   return (
     <div className="dashboard">
@@ -29,6 +47,11 @@ function Dashboard({ username, onLogout }) {
         <nav className="secondary-nav">
           <Link to="/friends" className="nav-link">
             👥 Friends
+            {unreadCount > 0 && (
+              <span className="notification-badge">
+                {unreadCount}
+              </span>
+            )}
           </Link>
           <Link to="/messages" className="nav-link">
             💬 Messages

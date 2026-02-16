@@ -147,4 +147,30 @@ describe('FriendsPage', () => {
     
     expect(screen.queryByText('[object Object]')).not.toBeInTheDocument()
   })
+
+  test('applies animate-pop class when friend is added successfully', async () => {
+    apiUtils.friendsAPI.add.mockResolvedValue({ data: { message: 'Added friend' } })
+    
+    render(<FriendsPage username="currentUser" />)
+    
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add friend/i })).toBeEnabled()
+    })
+    
+    const input = screen.getByPlaceholderText(/Enter username/i)
+    const addButton = screen.getByRole('button', { name: /Add friend/i })
+    
+    fireEvent.change(input, { target: { value: 'newfriend' } })
+    
+    await act(async () => {
+      fireEvent.click(addButton)
+    })
+    
+    await waitFor(() => {
+      expect(screen.getByText(/Added 'newfriend' as friend/i)).toBeInTheDocument()
+    })
+    
+    const successMessage = screen.getByText(/Added 'newfriend' as friend/i)
+    expect(successMessage).toHaveClass('animate-pop')
+  })
 })
